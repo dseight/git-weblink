@@ -1,0 +1,220 @@
+#!/usr/bin/env python3
+
+import argparse
+import re
+import subprocess
+import sys
+from urllib.parse import urlparse
+
+
+def git(*args) -> str:
+    return subprocess.check_output(["git", *args]).decode().strip()
+
+
+class HostConfig:
+    def __init__(self, commit: str, file: str, line: str, range: str):
+        self.commit = commit
+        self.file = file
+        self.line = line
+        self.range = range
+
+    @classmethod
+    def load(cls, url) -> "HostConfig":
+        try:
+            raw_cfg = git("config", "--get-urlmatch", "weblink", url)
+        except subprocess.CalledProcessError as e:
+            if e.returncode == 1:
+                raise KeyError(f'Missing weblink section for "{url}"')
+            else:
+                raise
+
+        cfg = {}
+
+        for line in raw_cfg.splitlines():
+            key, val = line.split(maxsplit=1)
+            # remove "weblink." suffix
+            key = key.split(".", maxsplit=1)[0]
+            cfg[key] = val
+
+        return cls(cfg["commit"], cfg["file"], cfg["line"], cfg["range"])
+
+
+# Extra configs can be added to ~/.gitconfig without a need to modify this file:
+#
+#     [weblink "https://your-forge.com"]
+#         commit = "{repo}/commit/{rev}"
+#         file = "{repo}/blob/{rev}/{path}"
+#         line = "{repo}/blob/{rev}/{path}#L{line}"
+#         range = "{repo}/blob/{rev}/{path}#L{range_begin}-L{range_end}"
+#
+HOST_CONFIGS = {
+    "https://github.com": HostConfig(
+        commit="{repo}/commit/{rev}",
+        file="{repo}/blob/{rev}/{path}",
+        line="{repo}/blob/{rev}/{path}#L{line}",
+        range="{repo}/blob/{rev}/{path}#L{range_begin}-L{range_end}",
+    ),
+    "https://gitlab.com": HostConfig(
+        commit="{repo}/-/commit/{rev}",
+        file="{repo}/-/blob/{rev}/{path}",
+        line="{repo}/-/blob/{rev}/{path}#L{line}",
+        range="{repo}/-/blob/{rev}/{path}#L{range_begin}-L{range_end}",
+    ),
+    "https://git.kernel.org": HostConfig(
+        commit="{repo}.git/commit/?id={rev}",
+        file="{repo}.git/tree/{path}?id={rev}",
+        line="{repo}.git/tree/{path}?id={rev}#n{line}",
+        range="{repo}.git/tree/{path}?id={rev}#n{range_begin}",
+    ),
+    "https://codeberg.org": HostConfig(
+        commit="{repo}/commit/{rev}",
+        file="{repo}/src/commit/{rev}/{path}",
+        line="{repo}/src/commit/{rev}/{path}#L{line}",
+        range="{repo}/src/commit/{rev}/{path}#L{range_begin}-L{range_end}",
+    ),
+    # Generic for Gitiles (JGit repository browser)
+    "https://gerrit.googlesource.com": HostConfig(
+        commit="{repo}/+/{rev}",
+        file="{repo}/+/{rev}/{path}",
+        line="{repo}/+/{rev}/{path}#{line}",
+        # It seems, multi-line links are not supported:
+        # https://issues.gerritcodereview.com/issues/40004573
+        range="{repo}/+/{rev}/{path}#{range_begin}",
+    ),
+}
+
+
+# Transformations for remote url -> web repo url
+REPO_URL_PATTERNS = {
+    # https://github.com/git/git.git -> https://github.com/git/git
+    r"(https://.*?)(?:\.git)?": r"\1",
+    # Note that latter url is not a valid link, but it is valid as an internal representation:
+    # git://git.kernel.org/pub/scm/git/git.git -> https://git.kernel.org/pub/scm/git/git
+    r"git://(.+)/(.+?)(?:\.git)?": r"https://\1/\2",
+    # git@github.com:git/git.git -> https://github.com/git/git
+    r"git@(.+):(.+?)(?:\.git)?": r"https://\1/\2",
+}
+
+
+def get_repo_url(url: str) -> str:
+    for pattern, template in REPO_URL_PATTERNS.items():
+        match = re.fullmatch(pattern, url)
+        if match:
+            return match.expand(template)
+
+    raise KeyError(f'No matching pattern for "{url}"')
+
+
+def get_host_config(repo_url: str) -> HostConfig:
+    url = urlparse(repo_url)
+    host = f"{url.scheme}://{url.netloc}"
+
+    if host in HOST_CONFIGS:
+        return HOST_CONFIGS[host]
+    else:
+        return HostConfig.load(host)
+
+
+def get_commit_link(repo_url: str, rev: str) -> str:
+    cfg = get_host_config(repo_url)
+    return cfg.commit.format(repo=repo_url, rev=rev)
+
+
+def get_file_link(repo_url: str, rev: str, path: str) -> str:
+    cfg = get_host_config(repo_url)
+    return cfg.file.format(repo=repo_url, rev=rev, path=path)
+
+
+def get_line_link(repo_url: str, rev: str, path: str, line: int) -> str:
+    cfg = get_host_config(repo_url)
+    return cfg.line.format(repo=repo_url, rev=rev, path=path, line=line)
+
+
+def get_range_link(
+    repo_url: str, rev: str, path: str, range_begin: int, range_end: int
+) -> str:
+    cfg = get_host_config(repo_url)
+    return cfg.range.format(
+        repo=repo_url, rev=rev, path=path, range_begin=range_begin, range_end=range_end
+    )
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="If you have multiple remotes in your repo, but most often need to generate\n"
+        + "links only for one of them, then such remote can be set as a default:\n"
+        + "\n"
+        + "    git config --local weblink.remote <remote>",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "file",
+        nargs="?",
+        metavar="FILE[:LINE]",
+        help="Path to a file to give a link to."
+        + 'Can contain a line or line range after a colon, e.g. "foo/bar:10-20"',
+    )
+    parser.add_argument(
+        "-r",
+        "--rev",
+        help="revision (default: HEAD). See gitrevision(7) for details.",
+    )
+    parser.add_argument(
+        "-R",
+        "--remote",
+        help='remote. If not provided, uses weblink.remote setting from the repo config. Falls back to "origin".',
+    )
+    args = parser.parse_args()
+
+    if not args.file and not args.rev:
+        parser.error("either -r/--rev or FILE must be provided")
+
+    if args.remote:
+        remote = args.remote
+    else:
+        remote = git(
+            "config", "--local", "--default", "origin", "--get", "weblink.remote"
+        )
+
+    try:
+        remote_url = git("remote", "get-url", remote)
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
+
+    if args.rev:
+        rev = git("rev-parse", args.rev)
+    else:
+        rev = git("rev-parse", "HEAD")
+
+    repo_url = get_repo_url(remote_url)
+
+    # TODO: file path must be normalized to be relative to the current repo,
+    # without leading "./"
+
+    # TODO: add an option to find nearest commit that is reachable in the remote
+    # (assume that we're on a local branch that has some changes).
+    #
+    # This might be helpful:
+    #
+    #     git show-ref --heads
+    #
+    # Note that --heads is a deprecated synonym for --branches (as of git 2.46) and
+    # may be removed in the future.
+    #
+    # And this (works from 2.47):
+    #
+    #     git for-each-ref refs/remotes --format='%(refname):%(is-base:HEAD)'
+
+    if args.file:
+        if ":" in args.file:
+            file, line = args.file.split(":")
+            if "-" in line:
+                range_begin, range_end = map(int, line.split("-", maxsplit=1))
+                print(get_range_link(repo_url, rev, file, range_begin, range_end))
+            else:
+                line = int(line)
+                print(get_line_link(repo_url, rev, file, line))
+        else:
+            print(get_file_link(repo_url, rev, args.file))
+    else:
+        print(get_commit_link(repo_url, rev))
