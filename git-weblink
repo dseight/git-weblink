@@ -205,16 +205,18 @@ if __name__ == "__main__":
     #
     #     git for-each-ref refs/remotes --format='%(refname):%(is-base:HEAD)'
 
-    if args.file:
-        if ":" in args.file:
-            file, line = args.file.split(":")
-            if "-" in line:
-                range_begin, range_end = map(int, line.split("-", maxsplit=1))
-                print(get_range_link(repo_url, rev, file, range_begin, range_end))
-            else:
-                line = int(line)
-                print(get_line_link(repo_url, rev, file, line))
-        else:
-            print(get_file_link(repo_url, rev, args.file))
-    else:
+    if not args.file:
         print(get_commit_link(repo_url, rev))
+        sys.exit(0)
+
+    if ":" not in args.file:
+        print(get_file_link(repo_url, rev, args.file))
+        sys.exit(0)
+
+    file, line = args.file.split(":")
+    if "-" in line:
+        range_begin, range_end = map(int, line.split("-", maxsplit=1))
+        print(get_range_link(repo_url, rev, file, range_begin, range_end))
+    else:
+        line = int(line)
+        print(get_line_link(repo_url, rev, file, line))
