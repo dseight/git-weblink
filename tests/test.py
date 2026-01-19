@@ -40,22 +40,25 @@ class TestGitWeblink(unittest.TestCase):
     def test_get_commit_link(self):
         self.assertEqual(
             get_commit_link(
-                "https://github.com/fish-shell/fish-shell",
+                "https://github.com",
+                "fish-shell/fish-shell",
                 "eb336889b7bcb88eb0e1f3dd678ae52275280186",
             ),
             "https://github.com/fish-shell/fish-shell/commit/eb336889b7bcb88eb0e1f3dd678ae52275280186",
         )
         self.assertEqual(
             get_commit_link(
-                "https://gitlab.com/gitlab-org/gitlab",
+                "https://gitlab.com",
+                "gitlab-org/gitlab",
                 "089916ca9f8d7a32dffa5ac2996ee3651bbfebe7",
             ),
             "https://gitlab.com/gitlab-org/gitlab/-/commit/089916ca9f8d7a32dffa5ac2996ee3651bbfebe7",
         )
         self.assertEqual(
             get_commit_link(
-                # Not a valid link on it's own, but valid as an internal representation
-                "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux",
+                "https://git.kernel.org",
+                # Not a valid path on it's own, but valid as an internal representation
+                "pub/scm/linux/kernel/git/torvalds/linux",
                 "3c8ba0d61d04ced9f8d9ff93977995a9e4e96e91",
             ),
             "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=3c8ba0d61d04ced9f8d9ff93977995a9e4e96e91",
@@ -64,8 +67,9 @@ class TestGitWeblink(unittest.TestCase):
     def test_get_line_link(self):
         self.assertEqual(
             get_line_link(
-                # Not a valid link on it's own, but valid as an internal representation
-                "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux",
+                "https://git.kernel.org",
+                # Not a valid path on it's own, but valid as an internal representation
+                "pub/scm/linux/kernel/git/torvalds/linux",
                 "3c8ba0d61d04ced9f8d9ff93977995a9e4e96e91",
                 "include/linux/kernel.h",
                 814,

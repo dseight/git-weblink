@@ -46,44 +46,44 @@ class HostConfig:
 # Extra configs can be added to ~/.gitconfig without a need to modify this file:
 #
 #     [weblink "https://your-forge.com"]
-#         commit = "{repo}/commit/{rev}"
-#         file = "{repo}/blob/{rev}/{path}"
-#         line = "{repo}/blob/{rev}/{path}#L{line}"
-#         range = "{repo}/blob/{rev}/{path}#L{range_begin}-L{range_end}"
+#         commit = "{host}/{repo}/commit/{rev}"
+#         file = "{host}/{repo}/blob/{rev}/{path}"
+#         line = "{host}/{repo}/blob/{rev}/{path}#L{line}"
+#         range = "{host}/{repo}/blob/{rev}/{path}#L{range_begin}-L{range_end}"
 #
 HOST_CONFIGS = {
     "https://github.com": HostConfig(
-        commit="{repo}/commit/{rev}",
-        file="{repo}/blob/{rev}/{path}",
-        line="{repo}/blob/{rev}/{path}#L{line}",
-        range="{repo}/blob/{rev}/{path}#L{range_begin}-L{range_end}",
+        commit="{host}/{repo}/commit/{rev}",
+        file="{host}/{repo}/blob/{rev}/{path}",
+        line="{host}/{repo}/blob/{rev}/{path}#L{line}",
+        range="{host}/{repo}/blob/{rev}/{path}#L{range_begin}-L{range_end}",
     ),
     "https://gitlab.com": HostConfig(
-        commit="{repo}/-/commit/{rev}",
-        file="{repo}/-/blob/{rev}/{path}",
-        line="{repo}/-/blob/{rev}/{path}#L{line}",
-        range="{repo}/-/blob/{rev}/{path}#L{range_begin}-L{range_end}",
+        commit="{host}/{repo}/-/commit/{rev}",
+        file="{host}/{repo}/-/blob/{rev}/{path}",
+        line="{host}/{repo}/-/blob/{rev}/{path}#L{line}",
+        range="{host}/{repo}/-/blob/{rev}/{path}#L{range_begin}-L{range_end}",
     ),
     "https://git.kernel.org": HostConfig(
-        commit="{repo}.git/commit/?id={rev}",
-        file="{repo}.git/tree/{path}?id={rev}",
-        line="{repo}.git/tree/{path}?id={rev}#n{line}",
-        range="{repo}.git/tree/{path}?id={rev}#n{range_begin}",
+        commit="{host}/{repo}.git/commit/?id={rev}",
+        file="{host}/{repo}.git/tree/{path}?id={rev}",
+        line="{host}/{repo}.git/tree/{path}?id={rev}#n{line}",
+        range="{host}/{repo}.git/tree/{path}?id={rev}#n{range_begin}",
     ),
     "https://codeberg.org": HostConfig(
-        commit="{repo}/commit/{rev}",
-        file="{repo}/src/commit/{rev}/{path}",
-        line="{repo}/src/commit/{rev}/{path}#L{line}",
-        range="{repo}/src/commit/{rev}/{path}#L{range_begin}-L{range_end}",
+        commit="{host}/{repo}/commit/{rev}",
+        file="{host}/{repo}/src/commit/{rev}/{path}",
+        line="{host}/{repo}/src/commit/{rev}/{path}#L{line}",
+        range="{host}/{repo}/src/commit/{rev}/{path}#L{range_begin}-L{range_end}",
     ),
     # Generic for Gitiles (JGit repository browser)
     "https://gerrit.googlesource.com": HostConfig(
-        commit="{repo}/+/{rev}",
-        file="{repo}/+/{rev}/{path}",
-        line="{repo}/+/{rev}/{path}#{line}",
+        commit="{host}/{repo}/+/{rev}",
+        file="{host}/{repo}/+/{rev}/{path}",
+        line="{host}/{repo}/+/{rev}/{path}#{line}",
         # It seems, multi-line links are not supported:
         # https://issues.gerritcodereview.com/issues/40004573
-        range="{repo}/+/{rev}/{path}#{range_begin}",
+        range="{host}/{repo}/+/{rev}/{path}#{range_begin}",
     ),
 }
 
@@ -113,37 +113,39 @@ def get_repo_url(url: str) -> str:
     raise KeyError(f'No matching pattern for "{url}"')
 
 
-def get_host_config(repo_url: str) -> HostConfig:
-    url = urlparse(repo_url)
-    host = f"{url.scheme}://{url.netloc}"
-
+def get_host_config(host: str) -> HostConfig:
     if host in HOST_CONFIGS:
         return HOST_CONFIGS[host]
     else:
         return HostConfig.load(host)
 
 
-def get_commit_link(repo_url: str, rev: str) -> str:
-    cfg = get_host_config(repo_url)
-    return cfg.commit.format(repo=repo_url, rev=rev)
+def get_commit_link(host: str, repo: str, rev: str) -> str:
+    cfg = get_host_config(host)
+    return cfg.commit.format(host=host, repo=repo, rev=rev)
 
 
-def get_file_link(repo_url: str, rev: str, path: str) -> str:
-    cfg = get_host_config(repo_url)
-    return cfg.file.format(repo=repo_url, rev=rev, path=path)
+def get_file_link(host: str, repo: str, rev: str, path: str) -> str:
+    cfg = get_host_config(host)
+    return cfg.file.format(host=host, repo=repo, rev=rev, path=path)
 
 
-def get_line_link(repo_url: str, rev: str, path: str, line: int) -> str:
-    cfg = get_host_config(repo_url)
-    return cfg.line.format(repo=repo_url, rev=rev, path=path, line=line)
+def get_line_link(host: str, repo: str, rev: str, path: str, line: int) -> str:
+    cfg = get_host_config(host)
+    return cfg.line.format(host=host, repo=repo, rev=rev, path=path, line=line)
 
 
 def get_range_link(
-    repo_url: str, rev: str, path: str, range_begin: int, range_end: int
+    host: str, repo: str, rev: str, path: str, range_begin: int, range_end: int
 ) -> str:
-    cfg = get_host_config(repo_url)
+    cfg = get_host_config(host)
     return cfg.range.format(
-        repo=repo_url, rev=rev, path=path, range_begin=range_begin, range_end=range_end
+        host=host,
+        repo=repo,
+        rev=rev,
+        path=path,
+        range_begin=range_begin,
+        range_end=range_end,
     )
 
 
@@ -206,6 +208,9 @@ if __name__ == "__main__":
         rev = git("rev-parse", "HEAD")
 
     repo_url = get_repo_url(remote_url)
+    url = urlparse(repo_url)
+    host = f"{url.scheme}://{url.netloc}"
+    repo = url.path.lstrip("/")
 
     # TODO: add an option to find nearest commit that is reachable in the remote
     # (assume that we're on a local branch that has some changes).
@@ -222,12 +227,12 @@ if __name__ == "__main__":
     #     git for-each-ref refs/remotes --format='%(refname):%(is-base:HEAD)'
 
     if not args.file:
-        print(get_commit_link(repo_url, rev))
+        print(get_commit_link(host, repo, rev))
         sys.exit(0)
 
     if ":" not in args.file:
         file = relative_path(args.file)
-        print(get_file_link(repo_url, rev, file))
+        print(get_file_link(host, repo, rev, file))
         sys.exit(0)
 
     file, line = args.file.split(":")
@@ -235,7 +240,7 @@ if __name__ == "__main__":
 
     if "-" in line:
         range_begin, range_end = map(int, line.split("-", maxsplit=1))
-        print(get_range_link(repo_url, rev, file, range_begin, range_end))
+        print(get_range_link(host, repo, rev, file, range_begin, range_end))
     else:
         line = int(line)
-        print(get_line_link(repo_url, rev, file, line))
+        print(get_line_link(host, repo, rev, file, line))

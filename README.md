@@ -67,10 +67,10 @@ you are using some corporate repo that you don't want to add into the source,
 you can put configuration for it into your `~/.gitconfig`:
 
     [weblink "https://your-forge.com"]
-        commit = "{repo}/commit/{rev}"
-        file = "{repo}/blob/{rev}/{path}"
-        line = "{repo}/blob/{rev}/{path}#L{line}"
-        range = "{repo}/blob/{rev}/{path}#L{range_begin}-L{range_end}"
+        commit = "{host}/{repo}/commit/{rev}"
+        file = "{host}/{repo}/blob/{rev}/{path}"
+        line = "{host}/{repo}/blob/{rev}/{path}#L{line}"
+        range = "{host}/{repo}/blob/{rev}/{path}#L{range_begin}-L{range_end}"
 
 Look at `HOST_CONFIGS` in `git-weblink` source for some references.
 
