@@ -88,7 +88,9 @@ HOST_CONFIGS = {
 }
 
 
-# Transformations for remote url -> web repo url
+# Transformations for remote url -> web repo url.
+# The url is normalized to the form: "https://host/repo",
+# with trailing ".git" suffix stripped.
 REPO_URL_PATTERNS = {
     # https://github.com/git/git.git -> https://github.com/git/git
     r"(https://.*?)(?:\.git)?": r"\1",
