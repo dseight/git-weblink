@@ -37,7 +37,10 @@ class HostConfig:
             key = key.split(".", maxsplit=1)[1]
             cfg[key] = val
 
-        return cls(cfg["commit"], cfg["file"], cfg["line"], cfg["range"])
+        try:
+            return cls(cfg["commit"], cfg["file"], cfg["line"], cfg["range"])
+        except KeyError as e:
+            raise KeyError(f'No "{e.args[0]}" value set for [weblink "{url}"]')
 
 
 # Extra configs can be added to ~/.gitconfig without a need to modify this file:
