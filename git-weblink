@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import os
 import re
 import subprocess
 import sys
@@ -139,6 +140,17 @@ def get_range_link(
     )
 
 
+def relative_path(path):
+    """
+    Normalize path relative to the current repo:
+    - ./foo -> foo
+    - /home/user/src/repo/foo -> foo  (when cwd is /home/user/src/repo)
+    """
+    path = os.path.realpath(args.file)
+    toplevel = git("rev-parse", "--show-toplevel")
+    return os.path.relpath(path, start=toplevel)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="If you have multiple remotes in your repo, but most often need to generate\n"
@@ -188,9 +200,6 @@ if __name__ == "__main__":
 
     repo_url = get_repo_url(remote_url)
 
-    # TODO: file path must be normalized to be relative to the current repo,
-    # without leading "./"
-
     # TODO: add an option to find nearest commit that is reachable in the remote
     # (assume that we're on a local branch that has some changes).
     #
@@ -210,10 +219,13 @@ if __name__ == "__main__":
         sys.exit(0)
 
     if ":" not in args.file:
-        print(get_file_link(repo_url, rev, args.file))
+        file = relative_path(args.file)
+        print(get_file_link(repo_url, rev, file))
         sys.exit(0)
 
     file, line = args.file.split(":")
+    file = relative_path(file)
+
     if "-" in line:
         range_begin, range_end = map(int, line.split("-", maxsplit=1))
         print(get_range_link(repo_url, rev, file, range_begin, range_end))

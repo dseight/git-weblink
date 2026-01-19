@@ -102,8 +102,6 @@ and now links will be generated to Linux stable repo:
 
 ## TODO
 
-- [ ] Normalize file path relative to the current repo. This will make it
-      possible to provide full paths.
 - [ ] Add `-n`/`--nearest` option to pick a nearest commit reachable in remote
       instead of `HEAD`. This is very useful because the tip of a local branch
       is quite often not uploaded to remote yet.
