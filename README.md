@@ -78,10 +78,17 @@ Look at `HOST_CONFIGS` in `git-weblink` source for some references.
 
 Another thing to configure is the default remote. Most users don't need to do
 anything about this. But if you have multiple remotes in your repo, and usually
-want to get a link to a remote named other than `origin`, you can set the
-default remote by running this git command:
+want to get a link to a remote named other than `origin`, you can either
+provide the remote name explicitly:
+
+    git weblink --remote myremote ...
+
+or you can set the default remote by running this git command:
 
     git config --local weblink.remote myremote
+
+and now `myremote` will be used by default, without need to provide it
+explicitly.
 
 For example, consider the following setup for a Linux repo:
 
