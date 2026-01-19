@@ -155,7 +155,7 @@ def relative_path(path):
     - ./foo -> foo
     - /home/user/src/repo/foo -> foo  (when cwd is /home/user/src/repo)
     """
-    path = os.path.realpath(args.file)
+    path = os.path.realpath(path)
     toplevel = git("rev-parse", "--show-toplevel")
     return os.path.relpath(path, start=toplevel)
 
