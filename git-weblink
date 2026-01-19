@@ -160,6 +160,10 @@ def relative_path(path):
     return os.path.relpath(path, start=toplevel)
 
 
+def nearest_revision(path):
+    return git("log", "-1", "--pretty=%H", "--", path)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="If you have multiple remotes in your repo, but most often need to generate\n"
@@ -175,11 +179,20 @@ if __name__ == "__main__":
         help="Path to a file to give a link to."
         + 'Can contain a line or line range after a colon, e.g. "foo/bar:10-20"',
     )
-    parser.add_argument(
+
+    rev_group = parser.add_mutually_exclusive_group()
+    rev_group.add_argument(
         "-r",
         "--rev",
         help="revision (default: HEAD). See gitrevision(7) for details.",
     )
+    rev_group.add_argument(
+        "-n",
+        "--nearest",
+        action="store_true",
+        help="when revision is not specified, try to use the revision of latest commit that changed the file",
+    )
+
     parser.add_argument(
         "-R",
         "--remote",
@@ -212,31 +225,22 @@ if __name__ == "__main__":
     host = f"{url.scheme}://{url.netloc}"
     repo = url.path.lstrip("/")
 
-    # TODO: add an option to find nearest commit that is reachable in the remote
-    # (assume that we're on a local branch that has some changes).
-    #
-    # This might be helpful:
-    #
-    #     git show-ref --heads
-    #
-    # Note that --heads is a deprecated synonym for --branches (as of git 2.46) and
-    # may be removed in the future.
-    #
-    # And this (works from 2.47):
-    #
-    #     git for-each-ref refs/remotes --format='%(refname):%(is-base:HEAD)'
-
     if not args.file:
         print(get_commit_link(host, repo, rev))
         sys.exit(0)
 
     if ":" not in args.file:
         file = relative_path(args.file)
+        if args.nearest:
+            rev = nearest_revision(file)
         print(get_file_link(host, repo, rev, file))
         sys.exit(0)
 
     file, line = args.file.split(":")
     file = relative_path(file)
+
+    if args.nearest:
+        rev = nearest_revision(file)
 
     if "-" in line:
         range_begin, range_end = map(int, line.split("-", maxsplit=1))

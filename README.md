@@ -109,9 +109,6 @@ and now links will be generated to Linux stable repo:
 
 ## TODO
 
-- [ ] Add `-n`/`--nearest` option to pick a nearest commit reachable in remote
-      instead of `HEAD`. This is very useful because the tip of a local branch
-      is quite often not uploaded to remote yet.
 - [ ] Add `black` and `mypy` (?) to github actions.
 
 ## License
