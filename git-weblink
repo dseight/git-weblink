@@ -99,6 +99,8 @@ REPO_URL_PATTERNS = {
     r"git://(.+)/(.+?)(?:\.git)?": r"https://\1/\2",
     # git@github.com:git/git.git -> https://github.com/git/git
     r"git@(.+):(.+?)(?:\.git)?": r"https://\1/\2",
+    # ssh://user@gerrit.googlesource.com:29418/plugins/lfs -> https://gerrit.googlesource.com/plugins/lfs
+    r"ssh://(.+?)@(.+?):(\d+)/(.+?)(?:\.git)?": r"https://\2/\4",
 }
 
 
