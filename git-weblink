@@ -149,7 +149,7 @@ def get_range_link(
     )
 
 
-def relative_path(path):
+def repo_relative_path(path):
     """
     Normalize path relative to the current repo:
     - ./foo -> foo
@@ -230,21 +230,23 @@ if __name__ == "__main__":
         sys.exit(0)
 
     if ":" not in args.file:
-        file = relative_path(args.file)
+        file_in_repo = repo_relative_path(args.file)
         if args.nearest:
-            rev = nearest_revision(file)
-        print(get_file_link(host, repo, rev, file))
+            # Use provided path as-is, as git is called from cwd, not from repo root
+            rev = nearest_revision(args.file)
+        print(get_file_link(host, repo, rev, file_in_repo))
         sys.exit(0)
 
     file, line = args.file.split(":")
-    file = relative_path(file)
+    file_in_repo = repo_relative_path(file)
 
     if args.nearest:
+        # Use provided path as-is, as git is called from cwd, not from repo root
         rev = nearest_revision(file)
 
     if "-" in line:
         range_begin, range_end = map(int, line.split("-", maxsplit=1))
-        print(get_range_link(host, repo, rev, file, range_begin, range_end))
+        print(get_range_link(host, repo, rev, file_in_repo, range_begin, range_end))
     else:
         line = int(line)
-        print(get_line_link(host, repo, rev, file, line))
+        print(get_line_link(host, repo, rev, file_in_repo, line))
