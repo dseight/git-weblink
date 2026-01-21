@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import unittest
-from weblink import get_repo_url, get_commit_link, get_line_link
+from git_weblink import get_repo_url, get_commit_link, get_line_link
 
 
 class TestGitWeblink(unittest.TestCase):

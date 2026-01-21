@@ -164,7 +164,7 @@ def nearest_revision(path):
     return git("log", "-1", "--pretty=%H", "--", path)
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(
         description="If you have multiple remotes in your repo, but most often need to generate\n"
         + "links only for one of them, then such remote can be set as a default:\n"
@@ -250,3 +250,7 @@ if __name__ == "__main__":
     else:
         line = int(line)
         print(get_line_link(host, repo, rev, file_in_repo, line))
+
+
+if __name__ == "__main__":
+    main()

@@ -5,7 +5,18 @@ line(s) in file.
 
 ## Setup
 
-Make `git-weblink` globally available by adding a path to it to the `PATH`
+### With pip
+
+Just install it with pip:
+
+    pip install git-weblink
+
+### Manual setup
+
+Use manual setup in case you don't want to use pip.
+
+Download `git_weblink.py`, rename it to `git-weblink` (without the `.py`
+extension) and make it globally available by adding a path to it to the `PATH`
 variable in your shell. This will make it appear as a git command, and you'll
 be able to run it like so:
 
