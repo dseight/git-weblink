@@ -57,6 +57,31 @@ a line range after the file name:
     $ git weblink include/linux/compiler.h:248-293
     https://github.com/torvalds/linux/blob/adc218676eef25575469234709c2d87185ca223a/include/linux/compiler.h#L248-L293
 
+### Integration with (neo)vim
+
+The easiest way to integrate it to vim is to copy-paste the following snippet
+into your `~/.vimrc` (or `~/.config/nvim/init.vim` for neovim):
+
+```vim
+function! s:GitWeblink(line1, line2)
+    let l:range = a:line1
+    if a:line1 != a:line2
+        let l:range .= "-" . a:line2
+    endif
+    let l:file_with_range = expand('%:.') . ":" . l:range
+    let l:cmd = "git weblink -n " . shellescape(l:file_with_range)
+    let l:link = system(l:cmd)
+    " Copy the link (without a newline) to the system clipboard
+    let @+ = trim(l:link)
+endfunction
+
+" Run :GitWeblink on a range to get a link
+command! -range=% GitWeblink call <SID>GitWeblink(<line1>, <line2>)
+
+" Map GitWeblink for visual mode on "L" key
+xmap <silent> L :GitWeblink<cr>
+```
+
 ## Configuration
 
 ### Host-specific links
