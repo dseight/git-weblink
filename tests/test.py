@@ -11,7 +11,7 @@ from git_weblink import (
 
 
 class TestGitWeblink(unittest.TestCase):
-    def test_get_repo_url(self):
+    def test_get_repo_url(self) -> None:
         self.assertEqual(
             get_repo_url("git@github.com:git/git.git"), "https://github.com/git/git"
         )
@@ -47,7 +47,7 @@ class TestGitWeblink(unittest.TestCase):
             "https://gerrit.googlesource.com/plugins/lfs",
         )
 
-    def test_get_commit_link(self):
+    def test_get_commit_link(self) -> None:
         self.assertEqual(
             get_commit_link(
                 "https://github.com",
@@ -90,7 +90,7 @@ class TestGitWeblink(unittest.TestCase):
             "https://gerrit.googlesource.com/plugins/lfs/+/784f83838bfdc56b0a0e578005ce1b9e4abcfbad",
         )
 
-    def test_get_file_link(self):
+    def test_get_file_link(self) -> None:
         self.assertEqual(
             get_file_link(
                 "https://github.com",
@@ -137,7 +137,7 @@ class TestGitWeblink(unittest.TestCase):
             "https://gerrit.googlesource.com/jgit/+/f8e960fc1097c4c3fca1df3399cd0c2139941a06/README.md",
         )
 
-    def test_get_line_link(self):
+    def test_get_line_link(self) -> None:
         self.assertEqual(
             get_line_link(
                 "https://github.com",
@@ -180,7 +180,7 @@ class TestGitWeblink(unittest.TestCase):
             "https://codeberg.org/forgejo/forgejo/src/commit/d996dfb476e9d1028146707fdd4850d98e8555ac/.editorconfig#L27",
         )
 
-    def test_get_range_link(self):
+    def test_get_range_link(self) -> None:
         self.assertEqual(
             get_range_link(
                 "https://github.com",

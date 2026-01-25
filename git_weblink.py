@@ -8,7 +8,7 @@ import sys
 from urllib.parse import urlparse
 
 
-def git(*args) -> str:
+def git(*args: str) -> str:
     return subprocess.check_output(["git", *args]).decode().strip()
 
 
@@ -20,7 +20,7 @@ class HostConfig:
         self.range = range
 
     @classmethod
-    def load(cls, url) -> "HostConfig":
+    def load(cls, url: str) -> "HostConfig":
         try:
             raw_cfg = git("config", "--get-urlmatch", "weblink", url)
         except subprocess.CalledProcessError as e:
@@ -149,7 +149,7 @@ def get_range_link(
     )
 
 
-def repo_relative_path(path):
+def repo_relative_path(path: str) -> str:
     """
     Normalize path relative to the current repo:
     - ./foo -> foo
@@ -160,11 +160,11 @@ def repo_relative_path(path):
     return os.path.relpath(path, start=toplevel)
 
 
-def nearest_revision(path):
+def nearest_revision(path: str) -> str:
     return git("log", "-1", "--pretty=%H", "--", path)
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="If you have multiple remotes in your repo, but most often need to generate\n"
         + "links only for one of them, then such remote can be set as a default:\n"
