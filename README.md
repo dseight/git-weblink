@@ -3,6 +3,8 @@
 This is a command for git that gives you a web link to a commit, file or
 line(s) in file.
 
+Works with Python 3.6+. No external dependencies.
+
 ## Setup
 
 ### With pip
