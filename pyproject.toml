@@ -38,3 +38,23 @@ py-modules = ["git_weblink"]
 
 [project.scripts]
 git-weblink = "git_weblink:main"
+
+[project.optional-dependencies]
+dev = [
+    "black>=22.8.0",
+    "mypy>=1.0.0",
+    "ruff>=0.4.0",
+]
+
+[tool.mypy]
+strict = true
+# 3.9 is the minimal supported version nowadays, but keep in mind that the code
+# must be compatible with 3.6!
+python_version = "3.9"
+
+[tool.ruff]
+target-version = "py37"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]

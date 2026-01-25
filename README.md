@@ -147,10 +147,6 @@ and now links will be generated to Linux stable repo:
     $ git weblink -r v6.12.63 Makefile
     https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/tree/Makefile?id=6d8ac7def7031521a56bae29cadece53987bec3c
 
-## TODO
-
-- [ ] Add `black` and `mypy` (?) to github actions.
-
 ## License
 
 Licensed under [MIT License](LICENSE).
