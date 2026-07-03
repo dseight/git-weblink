@@ -36,28 +36,28 @@ class HostConfig:
         self.line = line
         self.range = range
 
-    @classmethod
-    def load(cls, url: str) -> "HostConfig":
-        try:
-            raw_cfg = git("config", "--get-urlmatch", "weblink", url)
-        except subprocess.CalledProcessError as e:
-            if e.returncode == 1:
-                raise KeyError(f'Missing weblink section for "{url}"')
-            else:
-                raise
 
-        cfg = {}
+def load_host_config(url: str) -> HostConfig:
+    try:
+        raw_cfg = git("config", "--get-urlmatch", "weblink", url)
+    except subprocess.CalledProcessError as e:
+        if e.returncode == 1:
+            raise KeyError(f'Missing weblink section for "{url}"')
+        else:
+            raise
 
-        for line in raw_cfg.splitlines():
-            key, val = line.split(maxsplit=1)
-            # remove "weblink." prefix
-            key = key.split(".", maxsplit=1)[1]
-            cfg[key] = val
+    cfg = {}
 
-        try:
-            return cls(cfg["commit"], cfg["file"], cfg["line"], cfg["range"])
-        except KeyError as e:
-            raise KeyError(f'No "{e.args[0]}" value set for [weblink "{url}"]')
+    for line in raw_cfg.splitlines():
+        key, val = line.split(maxsplit=1)
+        # remove "weblink." prefix
+        key = key.split(".", maxsplit=1)[1]
+        cfg[key] = val
+
+    try:
+        return HostConfig(cfg["commit"], cfg["file"], cfg["line"], cfg["range"])
+    except KeyError as e:
+        raise KeyError(f'No "{e.args[0]}" value set for [weblink "{url}"]')
 
 
 # Extra configs can be added to ~/.gitconfig without a need to modify this file:
@@ -140,7 +140,7 @@ def get_host_config(host: str) -> HostConfig:
     if host in HOST_CONFIGS:
         return HOST_CONFIGS[host]
     else:
-        return HostConfig.load(host)
+        return load_host_config(host)
 
 
 def get_commit_link(host: str, repo: str, rev: str) -> str:
