@@ -2,12 +2,28 @@
 
 import unittest
 from git_weblink import (
+    ExtendedFormatter,
     get_repo_url,
     get_commit_link,
     get_file_link,
     get_line_link,
     get_range_link,
 )
+
+
+class TestExtendedFormatter(unittest.TestCase):
+    def setUp(self) -> None:
+        self.f = ExtendedFormatter()
+
+    def test_standard_format(self) -> None:
+        self.assertEqual(self.f.format("{x}/{y}", x=13, y=42), "13/42")
+        self.assertEqual(
+            self.f.format("blob/{rev}", rev="e4522d72804c"), "blob/e4522d72804c"
+        )
+
+    def test_sub_format(self) -> None:
+        self.assertEqual(self.f.format("{sub(x,'a','b')}", x="a1"), "b1")
+        self.assertEqual(self.f.format("{sub(x, 'a', 'b')}", x="a1"), "b1")
 
 
 class TestGitWeblink(unittest.TestCase):

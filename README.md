@@ -112,6 +112,13 @@ you can put configuration for it into your `~/.gitconfig`:
 
 Look at `HOST_CONFIGS` in `git-weblink` source for some references.
 
+Variables also can be changed with `sub()` function. E.g., if you need to
+remove the string `"git/"` from the beginning of the `repo` variable, just do
+something like this:
+
+    [weblink "https://your-forge.com"]
+        commit = "{host}/{sub(repo, '^git/', '')}/commit/{rev}"
+
 ### Remote
 
 Another thing to configure is the default remote. Most users don't need to do

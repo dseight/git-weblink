@@ -3,13 +3,30 @@
 import argparse
 import os
 import re
+import shlex
 import subprocess
 import sys
+from string import Formatter
 from urllib.parse import urlparse
 
 
 def git(*args: str) -> str:
     return subprocess.check_output(["git", *args]).decode().strip()
+
+
+class ExtendedFormatter(Formatter):
+    def get_value(self, key, args, kwargs):  # type: ignore
+        if isinstance(key, int):
+            return args[key]
+
+        if key.startswith("sub(") and key.endswith(")"):
+            lexer = shlex.shlex(key[4:-1], posix=True)
+            lexer.whitespace = ", "
+            lexer.whitespace_split = True
+            k, a, b = lexer
+            return re.sub(a, b, kwargs[k])
+
+        return kwargs[key]
 
 
 class HostConfig:
@@ -122,24 +139,29 @@ def get_host_config(host: str) -> HostConfig:
 
 def get_commit_link(host: str, repo: str, rev: str) -> str:
     cfg = get_host_config(host)
-    return cfg.commit.format(host=host, repo=repo, rev=rev)
+    fmt = ExtendedFormatter()
+    return fmt.format(cfg.commit, host=host, repo=repo, rev=rev)
 
 
 def get_file_link(host: str, repo: str, rev: str, path: str) -> str:
     cfg = get_host_config(host)
-    return cfg.file.format(host=host, repo=repo, rev=rev, path=path)
+    fmt = ExtendedFormatter()
+    return fmt.format(cfg.file, host=host, repo=repo, rev=rev, path=path)
 
 
 def get_line_link(host: str, repo: str, rev: str, path: str, line: int) -> str:
     cfg = get_host_config(host)
-    return cfg.line.format(host=host, repo=repo, rev=rev, path=path, line=line)
+    fmt = ExtendedFormatter()
+    return fmt.format(cfg.line, host=host, repo=repo, rev=rev, path=path, line=line)
 
 
 def get_range_link(
     host: str, repo: str, rev: str, path: str, range_begin: int, range_end: int
 ) -> str:
     cfg = get_host_config(host)
-    return cfg.range.format(
+    fmt = ExtendedFormatter()
+    return fmt.format(
+        cfg.range,
         host=host,
         repo=repo,
         rev=rev,
