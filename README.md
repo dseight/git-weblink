@@ -102,7 +102,20 @@ xmap <silent> L :GitWeblink<cr>
 Builtin configuration includes configs for some commonly used hosts (such as
 github.com, gitlab.com, etc.). But if you are hosting your own git forge, or
 you are using some corporate repo that you don't want to add into the source,
-you can put configuration for it into your `~/.gitconfig`:
+you can put configuration for it into your `~/.gitconfig`.
+
+One option is to use preset for some well-known service:
+
+    [weblink "https://your-gitlab-instance.com"]
+        preset = "gitlab"
+
+Available presets are:
+- forgejo
+- github
+- gitlab
+
+Or, in case of non-standard configuration of the service, or in case of usage
+of some less known forge, explicitly write url patterns:
 
     [weblink "https://your-forge.com"]
         commit = "{host}/{repo}/commit/{rev}"

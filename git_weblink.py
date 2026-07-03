@@ -37,6 +37,28 @@ class HostConfig:
         self.range = range
 
 
+PRESETS = {
+    "forgejo": HostConfig(
+        commit="{host}/{repo}/commit/{rev}",
+        file="{host}/{repo}/src/commit/{rev}/{path}",
+        line="{host}/{repo}/src/commit/{rev}/{path}#L{line}",
+        range="{host}/{repo}/src/commit/{rev}/{path}#L{range_begin}-L{range_end}",
+    ),
+    "github": HostConfig(
+        commit="{host}/{repo}/commit/{rev}",
+        file="{host}/{repo}/blob/{rev}/{path}",
+        line="{host}/{repo}/blob/{rev}/{path}#L{line}",
+        range="{host}/{repo}/blob/{rev}/{path}#L{range_begin}-L{range_end}",
+    ),
+    "gitlab": HostConfig(
+        commit="{host}/{repo}/-/commit/{rev}",
+        file="{host}/{repo}/-/blob/{rev}/{path}",
+        line="{host}/{repo}/-/blob/{rev}/{path}#L{line}",
+        range="{host}/{repo}/-/blob/{rev}/{path}#L{range_begin}-L{range_end}",
+    ),
+}
+
+
 def load_host_config(url: str) -> HostConfig:
     try:
         raw_cfg = git("config", "--get-urlmatch", "weblink", url)
@@ -54,6 +76,12 @@ def load_host_config(url: str) -> HostConfig:
         key = key.split(".", maxsplit=1)[1]
         cfg[key] = val
 
+    if "preset" in cfg:
+        try:
+            return PRESETS[cfg["preset"]]
+        except KeyError as e:
+            raise KeyError(f'No preset "{e.args[0]}" found for [weblink "{url}"]')
+
     try:
         return HostConfig(cfg["commit"], cfg["file"], cfg["line"], cfg["range"])
     except KeyError as e:
@@ -69,18 +97,8 @@ def load_host_config(url: str) -> HostConfig:
 #         range = "{host}/{repo}/blob/{rev}/{path}#L{range_begin}-L{range_end}"
 #
 HOST_CONFIGS = {
-    "https://github.com": HostConfig(
-        commit="{host}/{repo}/commit/{rev}",
-        file="{host}/{repo}/blob/{rev}/{path}",
-        line="{host}/{repo}/blob/{rev}/{path}#L{line}",
-        range="{host}/{repo}/blob/{rev}/{path}#L{range_begin}-L{range_end}",
-    ),
-    "https://gitlab.com": HostConfig(
-        commit="{host}/{repo}/-/commit/{rev}",
-        file="{host}/{repo}/-/blob/{rev}/{path}",
-        line="{host}/{repo}/-/blob/{rev}/{path}#L{line}",
-        range="{host}/{repo}/-/blob/{rev}/{path}#L{range_begin}-L{range_end}",
-    ),
+    "https://github.com": PRESETS["github"],
+    "https://gitlab.com": PRESETS["gitlab"],
     "https://git.kernel.org": HostConfig(
         commit="{host}/{repo}.git/commit/?id={rev}",
         file="{host}/{repo}.git/tree/{path}?id={rev}",
@@ -93,12 +111,7 @@ HOST_CONFIGS = {
         line="{host}/{sub(repo, '^git/', 'cgit/')}/tree/{path}?id={rev}#n{line}",
         range="{host}/{sub(repo, '^git/', 'cgit/')}/tree/{path}?id={rev}#n{range_begin}",
     ),
-    "https://codeberg.org": HostConfig(
-        commit="{host}/{repo}/commit/{rev}",
-        file="{host}/{repo}/src/commit/{rev}/{path}",
-        line="{host}/{repo}/src/commit/{rev}/{path}#L{line}",
-        range="{host}/{repo}/src/commit/{rev}/{path}#L{range_begin}-L{range_end}",
-    ),
+    "https://codeberg.org": PRESETS["forgejo"],
     # Generic for Gitiles (JGit repository browser)
     "https://gerrit.googlesource.com": HostConfig(
         commit="{host}/{repo}/+/{rev}",
