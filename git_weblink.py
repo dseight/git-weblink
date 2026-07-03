@@ -194,7 +194,8 @@ def nearest_revision(path: str) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="If you have multiple remotes in your repo, but most often need to generate\n"
+        description="Generate web link to a commit, file or line(s) in file.\n\n"
+        + "If you have multiple remotes in your repo, but most often need to generate\n"
         + "links only for one of them, then such remote can be set as a default:\n"
         + "\n"
         + "    git config --local weblink.remote <remote>",
