@@ -87,6 +87,12 @@ HOST_CONFIGS = {
         line="{host}/{repo}.git/tree/{path}?id={rev}#n{line}",
         range="{host}/{repo}.git/tree/{path}?id={rev}#n{range_begin}",
     ),
+    "https://git.ti.com": HostConfig(
+        commit="{host}/{sub(repo, '^git/', 'cgit/')}/commit/?id={rev}",
+        file="{host}/{sub(repo, '^git/', 'cgit/')}/tree/{path}?id={rev}",
+        line="{host}/{sub(repo, '^git/', 'cgit/')}/tree/{path}?id={rev}#n{line}",
+        range="{host}/{sub(repo, '^git/', 'cgit/')}/tree/{path}?id={rev}#n{range_begin}",
+    ),
     "https://codeberg.org": HostConfig(
         commit="{host}/{repo}/commit/{rev}",
         file="{host}/{repo}/src/commit/{rev}/{path}",

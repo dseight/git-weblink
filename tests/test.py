@@ -91,6 +91,14 @@ class TestGitWeblink(unittest.TestCase):
         )
         self.assertEqual(
             get_commit_link(
+                "https://git.ti.com",
+                "git/ti-linux-kernel/ti-linux-kernel",
+                "4a345e4d3d8aaee3d6e2acf72f0e2c2a78c53f34",
+            ),
+            "https://git.ti.com/cgit/ti-linux-kernel/ti-linux-kernel/commit/?id=4a345e4d3d8aaee3d6e2acf72f0e2c2a78c53f34",
+        )
+        self.assertEqual(
+            get_commit_link(
                 "https://codeberg.org",
                 "forgejo/forgejo",
                 "475e3471b4e8da8776fe7e66a3390c8a30c19f08",
