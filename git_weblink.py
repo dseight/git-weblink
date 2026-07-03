@@ -99,6 +99,7 @@ def load_host_config(url: str) -> HostConfig:
 HOST_CONFIGS = {
     "https://github.com": PRESETS["github"],
     "https://gitlab.com": PRESETS["gitlab"],
+    "https://gitlab.gnome.org": PRESETS["gitlab"],
     "https://git.kernel.org": HostConfig(
         commit="{host}/{repo}.git/commit/?id={rev}",
         file="{host}/{repo}.git/tree/{path}?id={rev}",
