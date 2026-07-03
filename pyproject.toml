@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "git-weblink"
-version = "0.1"
+version = "1.0.0"
 description = "Produce web link to a commit, file, or line in a repo"
 readme = "README.md"
 requires-python = ">=3.6"
